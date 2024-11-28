@@ -1,0 +1,8 @@
+.cache/
+build/
+*.o
+*.a
+*.so
+*.dSYM
+*.swp
+.clang-tidy
