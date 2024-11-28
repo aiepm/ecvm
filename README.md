@@ -2,10 +2,10 @@
 
 Efficient computer vision models. Focus of this repository:
 
-    1. Small computer vision modules
-    2. Architecture optimization
-    3. Efficient training on consumer-grade gpus
-    4. Efficient inference on consumer-grade gpus, mobile/edge devices and CPUs.
+1. Small computer vision modules
+2. Architecture optimization
+3. Efficient training on consumer-grade gpus
+4. Efficient inference on consumer-grade gpus, mobile/edge devices and CPUs.
 
 ## Installation
 
