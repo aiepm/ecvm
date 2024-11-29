@@ -1,6 +1,6 @@
 # models/vit/CMakeLists.txt
 
-# Create a library for mobilenetv4
+# Create a library for vit
 add_library(vit
     vit.cpp
 )
