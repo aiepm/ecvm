@@ -18,7 +18,7 @@ struct PatchEmbeddingOptions {
 
 struct PatchEmbedding : torch::nn::Module {
   int n_patches;
-  torch::nn::Conv2d projection;
+  torch::nn::Conv2d projection = nullptr;
 
   PatchEmbedding();
   PatchEmbedding(const PatchEmbeddingOptions&);

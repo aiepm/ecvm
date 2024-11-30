@@ -7,7 +7,7 @@ add_library(blocks
 )
 
 # Link required libraries
-target_link_libraries(blocks PRIVATE ecvm)
+target_link_libraries(blocks PUBLIC ecvm_core)
 
 # Add include directories
 target_include_directories(blocks PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

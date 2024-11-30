@@ -2,6 +2,7 @@
 #include <torch/nn/modules/container/sequential.h>
 #include <torch/nn/modules/dropout.h>
 #include <torch/nn/modules/normalization.h>
+#include <torch/nn/options/normalization.h>
 
 TransformerEncoderLayerOptions::TransformerEncoderLayerOptions() = default;
 
@@ -28,8 +29,8 @@ auto TransformerEncoderLayerOptions::DropoutRate(double x) -> TransformerEncoder
 TransformerEncoderLayer::TransformerEncoderLayer() = default;
 
 TransformerEncoderLayer::TransformerEncoderLayer(const TransformerEncoderLayerOptions &ops) {
-  this->ln1 = torch::nn::LayerNorm(ops.embed_dim);
-  this->ln2 = torch::nn::LayerNorm(ops.embed_dim);
+  this->ln1 = torch::nn::LayerNorm(torch::nn::LayerNormOptions({ops.embed_dim}));
+  this->ln2 = torch::nn::LayerNorm(torch::nn::LayerNormOptions({ops.embed_dim}));
   this->mhsa = torch::nn::MultiheadAttention(
       torch::nn::MultiheadAttentionOptions(ops.embed_dim, ops.num_heads).dropout(ops.dropout_rate)
   );

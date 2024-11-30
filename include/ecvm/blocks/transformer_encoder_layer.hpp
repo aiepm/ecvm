@@ -20,8 +20,8 @@ struct TransformerEncoderLayerOptions {
 };
 
 struct TransformerEncoderLayer : torch::nn::Module {
-  torch::nn::LayerNorm ln1, ln2;
-  torch::nn::MultiheadAttention mhsa;
+  torch::nn::LayerNorm ln1 = nullptr, ln2 = nullptr;
+  torch::nn::MultiheadAttention mhsa = nullptr;
   torch::nn::Sequential mlp;
 
   TransformerEncoderLayer();

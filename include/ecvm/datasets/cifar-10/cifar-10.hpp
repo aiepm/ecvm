@@ -3,7 +3,7 @@
 
 #include <torch/torch.h>
 
-struct CIFAR10 : public torch::data::Dataset<CIFAR10> {
+struct CIFAR10 : torch::data::Dataset<CIFAR10> {
   std::vector<std::pair<std::string, int>> entries;
 
   CIFAR10(const std::string& image_dir, const std::string& label_file);
@@ -12,8 +12,8 @@ struct CIFAR10 : public torch::data::Dataset<CIFAR10> {
   auto get(size_t index) -> torch::data::Example<> override;
 
   // Get the size of the dataset
-  auto size() -> torch::optional<size_t> const;
-
+  [[nodiscard]]
+  auto size() const -> torch::optional<size_t> override;
 };
 
 #endif // !f CIFAR10_HPP

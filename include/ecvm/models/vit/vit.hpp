@@ -1,7 +1,7 @@
 #ifndef VIT_HPP
 #define VIT_HPP
 
-#include "ecvm/blocks/patch_embedding.hpp"
+#include <ecvm/blocks/patch_embedding.hpp>
 #include <torch/nn/modules/container/sequential.h>
 #include <torch/nn/modules/dropout.h>
 #include <torch/torch.h>

@@ -6,8 +6,8 @@ add_executable(cifar-10-vit
 )
 
 # Link required libraries
-target_link_libraries(cifar-10-vit PRIVATE ecvm)
+target_link_libraries(cifar-10-vit PUBLIC ecvm)
 
 # Add include directories
-target_include_directories(cifar-10-vit PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(cifar-10-vit PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/include) 
 

@@ -31,11 +31,11 @@ auto CIFAR10::get(size_t index) -> torch::data::Example<> {
   auto labels_tensor = torch::zeros({10});
   labels_tensor[label] = 1;
 
-  return {tensor_img.clone(), labels_tensor.clone()};
+  return {std::move(tensor_img), std::move(labels_tensor)};
 }
 
 // Get the size of the dataset
-auto CIFAR10::size() -> torch::optional<size_t> const {
+auto CIFAR10::size() const -> torch::optional<size_t> {
   return entries.size();
 }
 

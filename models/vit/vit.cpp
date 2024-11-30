@@ -1,6 +1,5 @@
 #include <ecvm/blocks/patch_embedding.hpp>
 #include <ecvm/blocks/transformer_encoder_layer.hpp>
-#include <c10/core/TensorOptions.h>
 #include <ecvm/models/vit/vit.hpp>
 #include <torch/csrc/autograd/generated/variable_factories.h>
 #include <torch/nn/modules/container/sequential.h>
@@ -100,13 +99,15 @@ ViT::ViT(const ViTOptions &ops) {
 
   int downscaling_factor = 1;
   for (int i=0; i<mlp_head_layers - 2; i++) {
-    torch::nn::Sequential block(
+    torch::nn::Sequential blocks(
         torch::nn::Linear(mlp_head_dim / downscaling_factor, mlp_head_dim / (downscaling_factor * 2)),
         torch::nn::BatchNorm1d(mlp_head_dim / (downscaling_factor * 2)),
         torch::nn::ReLU(),
         torch::nn::Dropout(ops.dropout_rate)
     );
-    this->mlp_head->extend(block);
+    for (const auto& block : *blocks) {
+      this->mlp_head->push_back(block);
+    }
     downscaling_factor *= 2;
   }
 
