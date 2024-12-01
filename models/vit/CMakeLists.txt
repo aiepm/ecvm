@@ -6,7 +6,7 @@ add_library(vit
 )
 
 # Link required libraries
-target_link_libraries(vit PUBLIC ecvm_core)
+target_link_libraries(vit PUBLIC ecvm_core blocks)
 
 # Add include directories
 target_include_directories(vit PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

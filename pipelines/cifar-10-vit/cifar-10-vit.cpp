@@ -18,5 +18,7 @@ auto main() -> int {
 
   auto test_dataset = CIFAR10(test_image_dir, test_labels);
 
+  auto model = ViT(ViTOptions());
+
   return 0;
 }
