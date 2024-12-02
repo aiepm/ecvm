@@ -6,39 +6,19 @@
 
 TransformerEncoderLayerOptions::TransformerEncoderLayerOptions() = default;
 
-auto TransformerEncoderLayerOptions::EmbedDim(int x) -> TransformerEncoderLayerOptions& {
-  this->embed_dim = x;
-  return *this;
-}
-
-auto TransformerEncoderLayerOptions::NumHeads(int x) -> TransformerEncoderLayerOptions& {
-  this->num_heads = x;
-  return *this;
-}
-
-auto TransformerEncoderLayerOptions::MLPDim(int x) -> TransformerEncoderLayerOptions& {
-  this->mlp_dim = x;
-  return *this;
-}
-
-auto TransformerEncoderLayerOptions::DropoutRate(double x) -> TransformerEncoderLayerOptions& {
-  this->dropout_rate = x;
-  return *this;
-}
-
 TransformerEncoderLayerImpl::TransformerEncoderLayerImpl() = default;
 
 TransformerEncoderLayerImpl::TransformerEncoderLayerImpl(const TransformerEncoderLayerOptions &ops) {
-  this->ln1 = register_module("ln1", torch::nn::LayerNorm(torch::nn::LayerNormOptions({ops.embed_dim})));
-  this->ln2 = register_module("ln2", torch::nn::LayerNorm(torch::nn::LayerNormOptions({ops.embed_dim})));
+  this->ln1 = register_module("ln1", torch::nn::LayerNorm(torch::nn::LayerNormOptions({(int64_t)ops.embed_dim()})));
+  this->ln2 = register_module("ln2", torch::nn::LayerNorm(torch::nn::LayerNormOptions({(int64_t)ops.embed_dim()})));
   this->mhsa = register_module("mhsa", torch::nn::MultiheadAttention(
-      torch::nn::MultiheadAttentionOptions(ops.embed_dim, ops.num_heads).dropout(ops.dropout_rate)
+      torch::nn::MultiheadAttentionOptions(ops.embed_dim(), ops.num_heads()).dropout(ops.dropout_rate())
   ));
   this->mlp = register_module("mlp", torch::nn::Sequential(
-      torch::nn::Linear(ops.embed_dim, ops.mlp_dim),
+      torch::nn::Linear(ops.embed_dim(), ops.mlp_dim()),
       torch::nn::GELU(),
-      torch::nn::Linear(ops.mlp_dim, ops.embed_dim),
-      torch::nn::Dropout(ops.dropout_rate)
+      torch::nn::Linear(ops.mlp_dim(), ops.embed_dim()),
+      torch::nn::Dropout(ops.dropout_rate())
   ));
 }
 

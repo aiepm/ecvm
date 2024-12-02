@@ -6,17 +6,12 @@
 #include <torch/torch.h>
 
 struct TransformerEncoderLayerOptions {
-  int embed_dim = 64;
-  int num_heads = 4;
-  int mlp_dim = 128;
-  double dropout_rate = 0.1;
-
   TransformerEncoderLayerOptions();
 
-  auto EmbedDim(int x) -> TransformerEncoderLayerOptions&;
-  auto NumHeads(int x) -> TransformerEncoderLayerOptions&;
-  auto MLPDim(int x) -> TransformerEncoderLayerOptions&;
-  auto DropoutRate(double x) -> TransformerEncoderLayerOptions&;
+  TORCH_ARG(size_t, embed_dim) = 64;
+  TORCH_ARG(size_t, num_heads) = 4;
+  TORCH_ARG(size_t, mlp_dim) = 128;
+  TORCH_ARG(double, dropout_rate) = 0.1;
 };
 
 struct TransformerEncoderLayerImpl : torch::nn::Module {

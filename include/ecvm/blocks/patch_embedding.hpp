@@ -4,16 +4,12 @@
 #include <torch/torch.h>
 
 struct PatchEmbeddingOptions {
-  int img_size = 32;
-  int patch_size = 4;
-  int in_channels = 3;
-  int embed_dim = 64;
-
   PatchEmbeddingOptions();
-  auto ImgSize(int x) -> PatchEmbeddingOptions&;
-  auto PatchSize(int x) -> PatchEmbeddingOptions&;
-  auto InChannels(int x) -> PatchEmbeddingOptions&;
-  auto EmbedDim(int x) -> PatchEmbeddingOptions&;
+
+  TORCH_ARG(size_t, img_size) = 32;
+  TORCH_ARG(size_t, patch_size) = 4;
+  TORCH_ARG(size_t, in_channels) = 3;
+  TORCH_ARG(size_t, embed_dim) = 64;
 };
 
 struct PatchEmbeddingImpl : torch::nn::Module {

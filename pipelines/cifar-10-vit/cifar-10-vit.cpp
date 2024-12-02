@@ -10,9 +10,9 @@
 #include <torchvision/vision.h>
 
 struct CONFIG {
-  const int BATCH_SIZE = 512;
+  const int BATCH_SIZE = 4096;
   const int EPOCHS = 1000;
-  const int NUM_WORKERS = 8;
+  const int NUM_WORKERS = 16;
 };
 
 auto main() -> int {
@@ -48,9 +48,8 @@ auto main() -> int {
 
   torch::optim::SGD optimizer(model->parameters(), torch::optim::SGDOptions(0.01).lr(0.01).momentum(0.9).nesterov(true).weight_decay(1e-4));
 
-  model->train();
-
-  for (size_t epoch = 1; epoch <= conf.EPOCHS; epoch++) {
+  auto train_step = [&](size_t epoch) {
+    model->train();
     double running_loss = 0, cnt = 0;
     for (auto& batch : *train_data_loader) {
       auto data = batch.data.to(device), labels = batch.target.to(device);
@@ -67,7 +66,29 @@ auto main() -> int {
       cnt += batch.data.size(0);
     }
     auto average_loss = running_loss / cnt;
-    std::printf("Epoch %lu loss %lf\n", epoch, average_loss);
+    std::printf("Epoch %lu train loss %lf\n", epoch, average_loss);
+  };
+
+  auto eval_step = [&](size_t epoch) {
+    model->eval();
+    double running_loss = 0, cnt = 0;
+    for (auto& batch : *test_data_loader) {
+      auto data = batch.data.to(device), labels = batch.target.to(device);
+      
+      auto output = model->forward(data);
+      auto loss = torch::binary_cross_entropy_with_logits(output, labels);
+      
+      running_loss += loss.item().toFloat();
+      cnt += batch.data.size(0);
+    }
+    optimizer.zero_grad();
+    auto average_loss = running_loss / cnt;
+    std::printf("Epoch %lu test loss %lf\n", epoch, average_loss);
+  };
+
+  for (size_t epoch = 1; epoch <= conf.EPOCHS; epoch++) {
+    train_step(epoch);
+    eval_step(epoch);
   }
 
   return 0;

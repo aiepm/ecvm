@@ -7,31 +7,18 @@
 #include <torch/torch.h>
 
 struct ViTOptions {
-  int img_size=32;
-  int patch_size=4;
-  int in_channels=3;
-  int num_classes=10;
-  int embed_dim=64;
-  int num_heads=4;
-  int mlp_dim=128;
-  int num_layers=1;
-  int mlp_head_dim=512;
-  int mlp_head_layers=4;
-  double dropout_rate=0.1;
-
   ViTOptions();
-
-  auto ImgSize(int x) -> ViTOptions&;
-  auto PatchSize(int x) -> ViTOptions&;
-  auto InChannels(int x) -> ViTOptions&;
-  auto NumClasses(int x) -> ViTOptions&;
-  auto EmbedDim(int x) -> ViTOptions&;
-  auto NumHeads(int x) -> ViTOptions&;
-  auto MLPDim(int x) -> ViTOptions&;
-  auto NumLayers(int x) -> ViTOptions&;
-  auto MLPHeadDim(int x) -> ViTOptions&;
-  auto MLPHeadLayers(int x) -> ViTOptions&;
-  auto DropoutRate(double x) -> ViTOptions&;
+  TORCH_ARG(size_t, img_size) = 32;
+  TORCH_ARG(size_t, patch_size) = 4;
+  TORCH_ARG(size_t, in_channels) = 3;
+  TORCH_ARG(size_t, num_classes) = 10;
+  TORCH_ARG(size_t, embed_dim) = 64;
+  TORCH_ARG(size_t, num_heads) = 4;
+  TORCH_ARG(size_t, mlp_dim) = 256;
+  TORCH_ARG(size_t, num_layers) = 3;
+  TORCH_ARG(size_t, mlp_head_dim) = 256;
+  TORCH_ARG(size_t, mlp_head_layers) = 4;
+  TORCH_ARG(double, dropout_rate) = 0.1;
 };
 
 struct ViT : torch::nn::Module {
