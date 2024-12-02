@@ -2,7 +2,7 @@
 #include <opencv2/opencv.hpp>
 #include <iostream>
 #include <fstream>
-#include <filesystem>
+#include <torch/types.h>
 
 CIFAR10::CIFAR10(const std::string& image_dir, const std::string& label_file) {
   std::ifstream file(label_file);
@@ -25,13 +25,13 @@ auto CIFAR10::get(size_t index) -> torch::data::Example<> {
   // Convert to tensor
   cv::cvtColor(img, img, cv::COLOR_BGR2RGB); // Convert to RGB
   img.convertTo(img, CV_32F, 1.0 / 255.0);   // Normalize to [0, 1]
-  auto tensor_img = torch::from_blob(img.data, {img.rows, img.cols, 3}, torch::kFloat);
+  auto tensor_img = torch::from_blob(img.data, {img.rows, img.cols, 3}, torch::kFloat32);
   tensor_img = tensor_img.permute({2, 0, 1}); // Change to CHW format
 
-  auto labels_tensor = torch::zeros({10});
-  labels_tensor[label] = 1;
+  auto labels_tensor = torch::zeros({10}, torch::kFloat32);
+  labels_tensor[label] = 1.0;
 
-  return {std::move(tensor_img), std::move(labels_tensor)};
+  return {tensor_img.clone(), labels_tensor.clone()};
 }
 
 // Get the size of the dataset

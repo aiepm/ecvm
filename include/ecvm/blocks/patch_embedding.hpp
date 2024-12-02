@@ -16,13 +16,15 @@ struct PatchEmbeddingOptions {
   auto EmbedDim(int x) -> PatchEmbeddingOptions&;
 };
 
-struct PatchEmbedding : torch::nn::Module {
+struct PatchEmbeddingImpl : torch::nn::Module {
   int n_patches;
   torch::nn::Conv2d projection = nullptr;
 
-  PatchEmbedding();
-  PatchEmbedding(const PatchEmbeddingOptions&);
+  PatchEmbeddingImpl();
+  PatchEmbeddingImpl(const PatchEmbeddingOptions&);
   auto forward(torch::Tensor x) -> torch::Tensor;
 };
+
+TORCH_MODULE(PatchEmbedding);
 
 #endif // !PATCH_EMBEDDING_HPP

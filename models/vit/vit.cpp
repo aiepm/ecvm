@@ -71,7 +71,7 @@ ViT::ViT(const ViTOptions &ops) {
       .InChannels(ops.in_channels)
   );
 
-  int n_patches = this->patch_embedding.n_patches;
+  int n_patches = this->patch_embedding->n_patches;
 
   this->position_embeddings = torch::zeros({1, n_patches, ops.embed_dim}, torch::requires_grad());
 
@@ -112,10 +112,16 @@ ViT::ViT(const ViTOptions &ops) {
   }
 
   this->mlp_head->push_back(torch::nn::Linear(mlp_head_dim / downscaling_factor, ops.num_classes));
+
+  register_module("patch_embedding", this->patch_embedding);
+  register_parameter("position_embeddings", this->position_embeddings);
+  register_module("transformer_layers", this->transformer_layers);
+  register_module("mlp_head", this->mlp_head);
+  register_module("flatten", this->flatten);
 }
 
 auto ViT::forward(torch::Tensor x) -> torch::Tensor {
-  x = this->patch_embedding.forward(x);
+  x = this->patch_embedding->forward(x);
   x = x + this->position_embeddings;
   x = this->transformer_layers->forward(x);
   x = this->flatten(x);

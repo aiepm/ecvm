@@ -19,15 +19,17 @@ struct TransformerEncoderLayerOptions {
   auto DropoutRate(double x) -> TransformerEncoderLayerOptions&;
 };
 
-struct TransformerEncoderLayer : torch::nn::Module {
+struct TransformerEncoderLayerImpl : torch::nn::Module {
   torch::nn::LayerNorm ln1 = nullptr, ln2 = nullptr;
   torch::nn::MultiheadAttention mhsa = nullptr;
   torch::nn::Sequential mlp;
 
-  TransformerEncoderLayer();
-  TransformerEncoderLayer(const TransformerEncoderLayerOptions&);
+  TransformerEncoderLayerImpl();
+  TransformerEncoderLayerImpl(const TransformerEncoderLayerOptions&);
 
   auto forward(torch::Tensor x) -> torch::Tensor;
 };
+
+TORCH_MODULE(TransformerEncoderLayer);
 
 #endif // !TRANSFORMER_ENCODER_LAYER_HPP
