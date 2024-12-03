@@ -10,7 +10,7 @@
 #include <torchvision/vision.h>
 
 struct CONFIG {
-  const int BATCH_SIZE = 4096;
+  const int BATCH_SIZE = 64;
   const int EPOCHS = 1000;
   const int NUM_WORKERS = 16;
 };
@@ -46,44 +46,49 @@ auto main() -> int {
   auto train_data_loader = torch::data::make_data_loader<torch::data::samplers::RandomSampler>(std::move(train_dataset), torch::data::DataLoaderOptions().batch_size(conf.BATCH_SIZE).workers(conf.NUM_WORKERS).enforce_ordering(false));
   auto test_data_loader = torch::data::make_data_loader<torch::data::samplers::RandomSampler>(std::move(test_dataset), torch::data::DataLoaderOptions().batch_size(conf.BATCH_SIZE).workers(conf.NUM_WORKERS).enforce_ordering(false));
 
-  torch::optim::SGD optimizer(model->parameters(), torch::optim::SGDOptions(0.01).lr(0.01).momentum(0.9).nesterov(true).weight_decay(1e-4));
+  torch::optim::SGD optimizer(model->parameters(), torch::optim::SGDOptions(0.1).lr(0.1).momentum(0.9).nesterov(true).weight_decay(1e-4));
 
   auto train_step = [&](size_t epoch) {
     model->train();
-    double running_loss = 0, cnt = 0;
+    double running_loss = 0, cnt = 0, correct = 0;
     for (auto& batch : *train_data_loader) {
       auto data = batch.data.to(device), labels = batch.target.to(device);
-      
-      optimizer.zero_grad();
 
       auto output = model->forward(data);
-      auto loss = torch::binary_cross_entropy_with_logits(output, labels);
-      
+      auto loss = torch::cross_entropy_loss(output, labels);
+
+      optimizer.zero_grad();
       loss.backward();
       optimizer.step();
 
       running_loss += loss.item().toFloat();
       cnt += batch.data.size(0);
+
+      correct += (output.detach().argmax(1) == labels.detach()).sum().item<int64_t>();
     }
     auto average_loss = running_loss / cnt;
-    std::printf("Epoch %lu train loss %lf\n", epoch, average_loss);
+    auto accuracy = 100.0 * correct / cnt;
+    std::printf("Epoch %lu train loss: %lf accuracy: %lf\n", epoch, average_loss, accuracy);
   };
 
   auto eval_step = [&](size_t epoch) {
     model->eval();
-    double running_loss = 0, cnt = 0;
+    double running_loss = 0, cnt = 0, correct = 0;
     for (auto& batch : *test_data_loader) {
       auto data = batch.data.to(device), labels = batch.target.to(device);
       
       auto output = model->forward(data);
-      auto loss = torch::binary_cross_entropy_with_logits(output, labels);
+      auto loss = torch::cross_entropy_loss(output, labels);
       
       running_loss += loss.item().toFloat();
       cnt += batch.data.size(0);
+
+      correct += (output.argmax(1) == labels).sum().item<int64_t>();
     }
     optimizer.zero_grad();
     auto average_loss = running_loss / cnt;
-    std::printf("Epoch %lu test loss %lf\n", epoch, average_loss);
+    auto accuracy = 100.0 * correct / cnt;
+    std::printf("Epoch %lu test loss: %lf accuracy: %lf\n", epoch, average_loss, accuracy);
   };
 
   for (size_t epoch = 1; epoch <= conf.EPOCHS; epoch++) {

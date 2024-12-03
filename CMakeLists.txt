@@ -6,10 +6,11 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
 add_subdirectory(core)
 add_subdirectory(blocks)
 add_subdirectory(datasets)
+add_subdirectory(metrics)
 add_subdirectory(models)
 
 add_library(ecvm STATIC ecvm.cpp)
-target_link_libraries(ecvm PUBLIC ecvm_core blocks datasets models)
+target_link_libraries(ecvm PUBLIC ecvm_core blocks datasets metrics models)
 
 add_subdirectory(pipelines)
 

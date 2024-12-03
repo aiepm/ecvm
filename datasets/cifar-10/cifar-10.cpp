@@ -28,8 +28,7 @@ auto CIFAR10::get(size_t index) -> torch::data::Example<> {
   auto tensor_img = torch::from_blob(img.data, {img.rows, img.cols, 3}, torch::kFloat32);
   tensor_img = tensor_img.permute({2, 0, 1}); // Change to CHW format
 
-  auto labels_tensor = torch::zeros({10}, torch::kFloat32);
-  labels_tensor[label] = 1.0;
+  auto labels_tensor = torch::tensor(label, torch::kInt64);
 
   return {tensor_img.clone(), labels_tensor.clone()};
 }
