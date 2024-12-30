@@ -1,1 +1,1 @@
-add_subdirectory(cifar-10-vit)
+add_subdirectory(gemm_benchmark)

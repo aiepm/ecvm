@@ -6,3 +6,4 @@ build/
 *.dSYM
 *.swp
 .clang-tidy
+.clangd
