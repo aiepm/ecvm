@@ -10,9 +10,21 @@ set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 set(CMAKE_CUDA_USE_RESPONSE_FILE_FOR_INCLUDES 0)
 set(CMAKE_CUDA_SEPARABLE_COMPILATION ON)
 set(CMAKE_CUDA_ARCHITECTURES "native")
+set(CMAKE_CUDA_FLAGS_DEBUG "-O0")
+set(CMAKE_CUDA_FLAGS_RELEASE "-O3")
+set(CMAKE_CUDA_FLAGS_RELWITHDEBINFO "-O2")
 set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -use_fast_math -fmad=true")
-
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+
+option(BUILD_TESTS "Build tests" OFF)
+
+include(FetchContent)
+FetchContent_Declare(
+  googletest
+  URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
+)
+
+FetchContent_MakeAvailable(googletest)
 
 add_subdirectory(core)
 add_subdirectory(device)
@@ -25,11 +37,9 @@ target_link_libraries(ecvm PUBLIC ecvm_core device gemm tensor)
 
 add_subdirectory(pipelines)
 
-# Debug configuration with no optimization
-set(CMAKE_CUDA_FLAGS_DEBUG "-O0")
+if(BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
+endif()
 
-# Release configuration with high optimization
-set(CMAKE_CUDA_FLAGS_RELEASE "-O3")
 
-# RelWithDebInfo configuration with moderate optimization
-set(CMAKE_CUDA_FLAGS_RELWITHDEBINFO "-O2")

@@ -1,5 +1,6 @@
 add_library(gemm
-  matmul_naive.cu
+  naive.cu
+  tiled.cu
 )
 
 target_link_libraries(gemm PUBLIC ecvm_core)
