@@ -4,8 +4,8 @@
 #include <cublas_v2.h>
 #include <cublasLt.h>
 #include <cuda_fp16.h>
-#include <ecvm/gemm/naive.cuh>
 #include <ecvm/gemm/tiled.cuh>
+#include <ecvm/gemm/tiled_smem.cuh>
 #include <ecvm/device/init.cuh>
 #include <ecvm/tensor/init.cuh>
 #include <ecvm/tensor/ops.cuh>
@@ -46,15 +46,11 @@ auto matmul_naive_vs_cublas() -> int {
 
   auto run = [&](int iter_num, std::string name, float eps) -> int {
     float alpha = 1.0, beta = 0.0;
-    i64 total_matmul_time = 0, total_cublas_time = 0, total_coalesced_time = 0;
+    i64 total_smem_time = 0, total_cublas_time = 0, total_tiled_time = 0;
 
     curandState *s_a, *s_b;
     cudaMalloc(&s_a, n * k * sizeof(curandState));
     cudaMalloc(&s_b, k * m * sizeof(curandState));
-
-    
-    bool *d_res, h_res;
-    cudaMalloc(&d_res, sizeof(bool));
 
     cublasHandle_t handle;
     cublasCreate_v2(&handle);
@@ -68,33 +64,33 @@ auto matmul_naive_vs_cublas() -> int {
 
       cudaDeviceSynchronize();
 
-      cudaEvent_t coalesced_start, coalesced_end;
-      cudaEventCreate(&coalesced_start);
-      cudaEventCreate(&coalesced_end);
-      // gridDim stays the same
+      cudaEvent_t tiled_start, tiled_end;
+      cudaEventCreate(&tiled_start);
+      cudaEventCreate(&tiled_end);
       dim3 gridDim(4096 / 32, 4096 / 32);
-      // make blockDim 1-dimensional, but don't change number of threads
       dim3 blockDim(32 * 32);
-      nvtxRangePush("gemm_coalesced execution");
-      cudaEventRecord(coalesced_start);
+      nvtxRangePush("gemm_tiled execution");
+      cudaEventRecord(tiled_start);
       gemm_tiled<32><<<gridDim, blockDim>>>(d_c, d_a, d_b, n, k, m);
-      cudaEventRecord(coalesced_end);
+      cudaEventRecord(tiled_end);
       nvtxRangePop();
 
       cudaDeviceSynchronize();
 
-      cudaEvent_t naive_start, naive_end;
-      cudaEventCreate(&naive_start);
-      cudaEventCreate(&naive_end);
-
-      nvtxRangePush("gemm_naive execution");
-      cudaEventRecord(naive_start);
-      gemm_naive<<<NUM_BLOCKS, BLOCK_SIZE>>>(d_c, d_a, d_b, n, k, m);
-      cudaEventRecord(naive_end);
+      cudaEvent_t smem_start, smem_end;
+      cudaEventCreate(&smem_start);
+      cudaEventCreate(&smem_end);
+      const int blocksz = 32;
+      dim3 gridDimSmem(n / blocksz, m / blocksz);
+      dim3 blockDimSmem(blocksz * blocksz);
+      nvtxRangePush("gemm_smem execution");
+      cudaEventRecord(smem_start);
+      gemm_tiled_smem<blocksz><<<gridDimSmem, blockDimSmem>>>(d_c, d_a, d_b, n, k, m);
+      cudaEventRecord(smem_end);
       nvtxRangePop();
 
       cudaDeviceSynchronize();
-      
+
       cudaEvent_t cublas_start, cublas_end;
       cudaEventCreate(&cublas_start);
       cudaEventCreate(&cublas_end);
@@ -107,31 +103,21 @@ auto matmul_naive_vs_cublas() -> int {
 
       cudaDeviceSynchronize();
 
-      total_matmul_time += get_microseconds(naive_start, naive_end);
+      total_smem_time += get_microseconds(smem_start, smem_end);
       total_cublas_time += get_microseconds(cublas_start, cublas_end);
-      total_coalesced_time += get_microseconds(coalesced_start, coalesced_end);
-
-      h_res = true;
-      cudaMemcpy(d_res, &h_res, sizeof(bool), cudaMemcpyHostToDevice);
-      check_matrix_equality_atomic<<<NUM_BLOCKS, BLOCK_SIZE>>>(d_c, d_c_ref, n, m, d_res, eps);
-      cudaDeviceSynchronize();
-      cudaMemcpy(&h_res, d_res, sizeof(bool), cudaMemcpyDeviceToHost);
-
-      if (!h_res) {
-        return 1;
-      }
+      total_tiled_time += get_microseconds(tiled_start, tiled_end);
     }
 
-    i64 average_matmul_time = total_matmul_time / iter_num;
+    i64 average_smem_time = total_smem_time / iter_num;
     i64 average_cublas_time = total_cublas_time / iter_num;
-    i64 average_coalesced_time = total_coalesced_time / iter_num;
-    double average_matmul_flops = ((2.0 * n * m * k) / average_matmul_time) / 1e3;
-    double average_coalesced_flops = ((2.0 * n * m * k) / average_coalesced_time) / 1e3;
+    i64 average_tiled_time = total_tiled_time / iter_num;
+    double average_smem_flops = ((2.0 * n * m * k) / average_smem_time) / 1e3;
+    double average_coalesced_flops = ((2.0 * n * m * k) / average_tiled_time) / 1e3;
 
-    std::printf("%s avg naive time: %ld\n", name.c_str(), average_matmul_time);
-    std::printf("%s avg naive gflops: %lf\n", name.c_str(), average_matmul_flops);
-    std::printf("%s avg coalesced time: %ld\n", name.c_str(), average_coalesced_time);
-    std::printf("%s avg coalesced gflops: %lf\n", name.c_str(), average_coalesced_flops);
+    std::printf("%s avg smem time: %ld\n", name.c_str(), average_smem_time);
+    std::printf("%s avg smem gflops: %lf\n", name.c_str(), average_smem_flops);
+    std::printf("%s avg tiled time: %ld\n", name.c_str(), average_tiled_time);
+    std::printf("%s avg tiled gflops: %lf\n", name.c_str(), average_coalesced_flops);
     std::printf("%s avg cublas time: %ld\n", name.c_str(), average_cublas_time);
 
     cudaFree(s_a);

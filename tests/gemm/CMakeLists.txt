@@ -3,6 +3,8 @@ include(GoogleTest)
 
 add_executable(test_gemm
   naive.cu
+  tiled.cu
+  tiled_smem.cu
 )
 
 target_link_libraries(test_gemm PRIVATE
